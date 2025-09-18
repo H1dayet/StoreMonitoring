@@ -1,0 +1,58 @@
+[
+  {
+    "id": "7d3904ed-831a-42e5-8014-6dc93afd4b6e",
+    "title": "Azsmart tokeni sıradan çıxib (108)",
+    "description": "",
+    "severity": "low",
+    "reason": "azsmart_tokeni_siradan_cixdigi_zaman",
+    "storeCode": "108",
+    "status": "open",
+    "createdAt": "2025-09-18T10:57:56.610Z",
+    "updatedAt": "2025-09-18T10:57:56.610Z"
+  },
+  {
+    "id": "15b4abd6-bc2a-413f-9c7c-485159967e9e",
+    "title": "NBA tokeni sıradan çıxib (101)",
+    "description": "",
+    "severity": "low",
+    "reason": "nba_tokeni_siradan_cixdigi_zaman",
+    "storeCode": "101",
+    "status": "investigating",
+    "createdAt": "2025-09-18T10:57:40.546Z",
+    "updatedAt": "2025-09-18T11:13:33.434Z"
+  },
+  {
+    "id": "ea260d5c-e4d6-4db5-9f0a-9e34daac1931",
+    "title": "NBA tokeni sıradan çıxdığı zaman (110)",
+    "description": "",
+    "severity": "low",
+    "reason": "nba_tokeni_siradan_cixdigi_zaman",
+    "storeCode": "110",
+    "status": "resolved",
+    "createdAt": "2025-09-18T10:49:57.624Z",
+    "updatedAt": "2025-09-18T10:50:01.965Z",
+    "endedAt": "2025-09-18T10:50:01.965Z"
+  },
+  {
+    "id": "de92de64-d59d-4284-9f10-c660c1ad86fd",
+    "title": "Azsmart tokeni sıradan çıxdığı zaman (107)",
+    "description": "",
+    "severity": "low",
+    "reason": "azsmart_tokeni_siradan_cixdigi_zaman",
+    "storeCode": "107",
+    "status": "investigating",
+    "createdAt": "2025-09-18T10:49:44.654Z",
+    "updatedAt": "2025-09-18T10:49:46.995Z"
+  },
+  {
+    "id": "64f5d9e3-5de8-48bf-8b7e-5582b89718cf",
+    "title": "NBA tokeni sıradan çıxdığı zaman (101)",
+    "description": "",
+    "severity": "low",
+    "reason": "nba_tokeni_siradan_cixdigi_zaman",
+    "storeCode": "101",
+    "status": "open",
+    "createdAt": "2025-09-18T10:49:38.985Z",
+    "updatedAt": "2025-09-18T10:49:38.985Z"
+  }
+]

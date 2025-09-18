@@ -1,14 +1,38 @@
 [
   {
+    "id": "27b5415f-ce43-4a1c-b3ca-ee55deeb006b",
+    "title": "POSS kassa sıradan çıxib (107)",
+    "description": "test test test",
+    "severity": "low",
+    "reason": "poss_kassa_siradan_cixdigi_zaman",
+    "storeCode": "107",
+    "status": "open",
+    "createdAt": "2025-09-18T12:55:59.117Z",
+    "updatedAt": "2025-09-18T12:55:59.117Z"
+  },
+  {
+    "id": "50849f5e-dece-4b82-8030-59e9aee427af",
+    "title": "POSS kassa sıradan çıxib (101)",
+    "description": "",
+    "severity": "low",
+    "reason": "poss_kassa_siradan_cixdigi_zaman",
+    "storeCode": "101",
+    "status": "closed",
+    "createdAt": "2025-09-18T12:04:43.015Z",
+    "updatedAt": "2025-09-18T12:53:42.533Z",
+    "endedAt": "2025-09-18T12:53:42.533Z"
+  },
+  {
     "id": "7d3904ed-831a-42e5-8014-6dc93afd4b6e",
     "title": "Azsmart tokeni sıradan çıxib (108)",
     "description": "",
     "severity": "low",
     "reason": "azsmart_tokeni_siradan_cixdigi_zaman",
     "storeCode": "108",
-    "status": "open",
+    "status": "closed",
     "createdAt": "2025-09-18T10:57:56.610Z",
-    "updatedAt": "2025-09-18T10:57:56.610Z"
+    "updatedAt": "2025-09-18T12:53:43.589Z",
+    "endedAt": "2025-09-18T12:53:43.589Z"
   },
   {
     "id": "15b4abd6-bc2a-413f-9c7c-485159967e9e",
@@ -17,9 +41,10 @@
     "severity": "low",
     "reason": "nba_tokeni_siradan_cixdigi_zaman",
     "storeCode": "101",
-    "status": "investigating",
+    "status": "closed",
     "createdAt": "2025-09-18T10:57:40.546Z",
-    "updatedAt": "2025-09-18T11:13:33.434Z"
+    "updatedAt": "2025-09-18T12:44:20.780Z",
+    "endedAt": "2025-09-18T12:44:20.780Z"
   },
   {
     "id": "ea260d5c-e4d6-4db5-9f0a-9e34daac1931",
@@ -28,10 +53,10 @@
     "severity": "low",
     "reason": "nba_tokeni_siradan_cixdigi_zaman",
     "storeCode": "110",
-    "status": "resolved",
+    "status": "closed",
     "createdAt": "2025-09-18T10:49:57.624Z",
-    "updatedAt": "2025-09-18T10:50:01.965Z",
-    "endedAt": "2025-09-18T10:50:01.965Z"
+    "updatedAt": "2025-09-18T12:53:45.326Z",
+    "endedAt": "2025-09-18T12:53:45.326Z"
   },
   {
     "id": "de92de64-d59d-4284-9f10-c660c1ad86fd",
@@ -40,9 +65,10 @@
     "severity": "low",
     "reason": "azsmart_tokeni_siradan_cixdigi_zaman",
     "storeCode": "107",
-    "status": "investigating",
+    "status": "closed",
     "createdAt": "2025-09-18T10:49:44.654Z",
-    "updatedAt": "2025-09-18T10:49:46.995Z"
+    "updatedAt": "2025-09-18T12:24:45.401Z",
+    "endedAt": "2025-09-18T12:24:45.401Z"
   },
   {
     "id": "64f5d9e3-5de8-48bf-8b7e-5582b89718cf",
@@ -51,8 +77,9 @@
     "severity": "low",
     "reason": "nba_tokeni_siradan_cixdigi_zaman",
     "storeCode": "101",
-    "status": "open",
+    "status": "closed",
     "createdAt": "2025-09-18T10:49:38.985Z",
-    "updatedAt": "2025-09-18T10:49:38.985Z"
+    "updatedAt": "2025-09-18T12:24:46.688Z",
+    "endedAt": "2025-09-18T12:24:46.688Z"
   }
 ]

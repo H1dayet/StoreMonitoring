@@ -27,8 +27,10 @@ import {
   Stat,
   StatLabel,
   StatNumber,
+  Textarea,
 } from '@chakra-ui/react';
 import { AddIcon, MoonIcon, SunIcon } from '@chakra-ui/icons';
+import { getAuthUser } from '../services/auth';
 
 export const App: React.FC = () => {
   const [issues, setIssues] = useState<Issue[]>([]);
@@ -57,12 +59,12 @@ export const App: React.FC = () => {
     e.preventDefault();
     const form = e.currentTarget;
     const formData = new FormData(form);
-    const reason = String(formData.get('reason') || '') as IssueReason;
+  const reason = String(formData.get('reason') || '') as IssueReason;
   const storeCode = String(formData.get('storeCode') || '').trim();
+  const description = String(formData.get('description') || '').trim();
   if (!reason) return;
     // Auto-generate a concise title using reason label and store code
     const title = `${reasonLabels[reason] || reason}${storeCode ? ` (${storeCode})` : ''}`;
-    const description = '';
   if (!storeCode) return;
   await createIssue({ title, description, reason, storeCode });
     form.reset();
@@ -115,18 +117,20 @@ export const App: React.FC = () => {
     return parts.join(' ');
   }
 
-  // Average downtime today across all tickets that intersect today (including ongoing)
+  // Average downtime today across tickets CREATED today (including ongoing)
   const now = Date.now();
-  const todayStartMs = todayStart.getTime();
-  const todayEndMs = todayEnd.getTime();
-  const overlaps = issues.map(i => {
-    const created = new Date(i.createdAt).getTime();
-    const ended = i.endedAt ? new Date(i.endedAt).getTime() : now;
-    const from = Math.max(created, todayStartMs);
-    const to = Math.min(ended, todayEndMs);
-    return Math.max(0, to - from);
-  }).filter(ms => ms > 0);
-  const avgDowntimeTodayMs = overlaps.length ? Math.round(overlaps.reduce((a,b)=>a+b,0) / overlaps.length) : 0;
+  const todaysIssues = issues.filter(i => {
+    const created = new Date(i.createdAt);
+    return created >= todayStart && created <= todayEnd;
+  });
+  const todaysDurations = todaysIssues.map(i => {
+    const createdMs = new Date(i.createdAt).getTime();
+    const endedMs = i.endedAt ? new Date(i.endedAt).getTime() : now;
+    return Math.max(0, endedMs - createdMs);
+  });
+  const avgDowntimeTodayMs = todaysDurations.length
+    ? Math.round(todaysDurations.reduce((a,b)=>a+b,0) / todaysDurations.length)
+    : 0;
   const avgDowntimeTodayLabel = formatDurationMs(avgDowntimeTodayMs);
 
   // Close modal after successful creation
@@ -147,15 +151,21 @@ export const App: React.FC = () => {
     setFilterStatus('');
   }
 
+  const authUser = getAuthUser();
+  const isAdmin = authUser?.role === 'admin';
+
   return (
     <Box minH="100vh" bg={bg} py={6}>
       <Container maxW="6xl">
         <HStack mb={6}>
-          <Heading size="lg">Issue Tracker</Heading>
+          <Heading size="lg">Mağaza Dayanma Monitoru</Heading>
           <Spacer />
+          <Button as="a" href="#/admin" variant="outline" mr={2}>Admin</Button>
+          {isAdmin && (
           <Button colorScheme="teal" leftIcon={<AddIcon boxSize={3} />} onClick={onOpen} mr={2}>
             New Issue
           </Button>
+          )}
           <IconButton
             aria-label="Toggle color mode"
             onClick={toggleColorMode}
@@ -169,7 +179,7 @@ export const App: React.FC = () => {
         <Box bg={panelBg} p={4} rounded="md" shadow="sm" borderWidth="1px" mb={4}>
           <SimpleGrid columns={{ base: 1, md: 3 }} gap={4}>
             <Stat>
-              <StatLabel>Active (Open + In progress)</StatLabel>
+              <StatLabel>Active (Open + Investigating)</StatLabel>
               <StatNumber>{activeCount}</StatNumber>
             </Stat>
             <Stat>
@@ -235,6 +245,9 @@ export const App: React.FC = () => {
                   {stores.map(s => <option key={s.code} value={s.code}>{s.code} - {s.name}</option>)}
                 </Select>
               </SimpleGrid>
+              <Box mt={3}>
+                <Textarea name="description" placeholder="Add a short description (optional)" rows={4} />
+              </Box>
             </form>
           </ModalBody>
           <ModalFooter>

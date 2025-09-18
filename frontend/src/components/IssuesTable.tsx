@@ -1,4 +1,5 @@
 import React from 'react';
+import { getAuthUser } from '../services/auth';
 import { Issue, IssueStatus, IssueReason } from '../types';
 import { StatusBadge } from './StatusBadge';
 import {
@@ -11,6 +12,14 @@ import {
   Select as CSelect,
   Text,
   TableContainer,
+  Button,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
 } from '@chakra-ui/react';
 
 interface Props {
@@ -45,6 +54,10 @@ function formatDuration(fromIso: string, toIso?: string) {
 }
 
 export const IssuesTable: React.FC<Props> = ({ issues, onStatusChange, reasonLabels, storeNameByCode = {} }) => {
+  const isAdmin = getAuthUser()?.role === 'admin';
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [activeIssue, setActiveIssue] = React.useState<Issue | null>(null);
+  function openDesc(issue: Issue) { setActiveIssue(issue); onOpen(); }
   return (
     <TableContainer w="full" overflowX="auto">
       <Table size="sm" variant="simple" width="full" sx={{ tableLayout: 'auto' }}>
@@ -55,6 +68,7 @@ export const IssuesTable: React.FC<Props> = ({ issues, onStatusChange, reasonLab
           <Th minW="180px">Created</Th>
           <Th minW="140px">Downtime</Th>
           <Th minW="160px">Status</Th>
+          <Th minW="120px">Details</Th>
         </Tr>
       </Thead>
       <Tbody>
@@ -67,7 +81,7 @@ export const IssuesTable: React.FC<Props> = ({ issues, onStatusChange, reasonLab
             <Td><Text fontFamily="mono">{formatDateTime(issue.createdAt)}</Text></Td>
             <Td><Text>{formatDuration(issue.createdAt, issue.endedAt)}</Text></Td>
             <Td>
-              {onStatusChange ? (
+              {onStatusChange && isAdmin ? (
                 <CSelect
                   size="sm"
                   width="40"
@@ -80,15 +94,36 @@ export const IssuesTable: React.FC<Props> = ({ issues, onStatusChange, reasonLab
                 </CSelect>
               ) : <StatusBadge status={issue.status} />}
             </Td>
+            <Td>
+              <Button size="sm" variant="outline" onClick={() => openDesc(issue)}>View</Button>
+            </Td>
           </Tr>
         ))}
         {!issues.length && (
           <Tr>
-            <Td colSpan={5}>No issues</Td>
+            <Td colSpan={6}>No issues</Td>
           </Tr>
         )}
       </Tbody>
     </Table>
+
+    {/* Description Modal */}
+    <Modal isOpen={isOpen} onClose={onClose} size="lg">
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>Issue Details</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          {activeIssue ? (
+            <>
+              <Text fontWeight="bold" mb={2}>{reasonLabels[activeIssue.reason]}</Text>
+              <Text fontSize="sm" color="gray.500" mb={3}>{formatDateTime(activeIssue.createdAt)}</Text>
+              <Text whiteSpace="pre-wrap">{activeIssue.description || 'No description provided.'}</Text>
+            </>
+          ) : null}
+        </ModalBody>
+      </ModalContent>
+    </Modal>
     </TableContainer>
   );
 };

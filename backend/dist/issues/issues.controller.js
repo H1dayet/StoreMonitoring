@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const issues_service_1 = require("./issues.service");
 const create_issue_dto_1 = require("./models/create-issue.dto");
 const update_issue_status_dto_1 = require("./models/update-issue-status.dto");
+const admin_guard_1 = require("../auth/admin.guard");
 let IssuesController = class IssuesController {
     constructor(issuesService) {
         this.issuesService = issuesService;
@@ -53,6 +54,7 @@ __decorate([
 ], IssuesController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Post)(),
+    (0, common_1.UseGuards)(admin_guard_1.AdminGuard),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_issue_dto_1.CreateIssueDto]),
@@ -60,6 +62,7 @@ __decorate([
 ], IssuesController.prototype, "create", null);
 __decorate([
     (0, common_1.Patch)(':id/status'),
+    (0, common_1.UseGuards)(admin_guard_1.AdminGuard),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -68,6 +71,7 @@ __decorate([
 ], IssuesController.prototype, "updateStatus", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, common_1.UseGuards)(admin_guard_1.AdminGuard),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),

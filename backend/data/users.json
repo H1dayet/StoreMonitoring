@@ -1,0 +1,22 @@
+[
+  {
+    "id": "21b1a9ef-29e8-4484-90e4-c93fedb32533",
+    "username": "admin",
+    "name": "Administrator",
+    "role": "admin",
+    "active": true,
+    "passwordHash": "$2b$10$jY75d4jWWAh7R98cing6Se9wX/4QVkdaVXJzBO27dA8WYuPFJfZ6G",
+    "createdAt": "2025-09-18T12:18:05.738Z",
+    "updatedAt": "2025-09-18T12:18:05.738Z"
+  },
+  {
+    "id": "e417ee4a-0450-4cc2-8dab-e3347bf1f533",
+    "username": "test",
+    "name": "Test Test",
+    "role": "user",
+    "active": true,
+    "passwordHash": "$2b$10$xqmwlQhpGA50NZSUmKeIl.nzN.XCebLqu0c4X0vRFWfuL7OFAxPTG",
+    "createdAt": "2025-09-18T12:47:14.550Z",
+    "updatedAt": "2025-09-18T12:47:14.550Z"
+  }
+]

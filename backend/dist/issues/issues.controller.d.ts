@@ -6,7 +6,7 @@ export declare class IssuesController {
     constructor(issuesService: IssuesService);
     findAll(): import("./models/issue.entity").Issue[];
     findOne(id: string): import("./models/issue.entity").Issue | undefined;
-    create(dto: CreateIssueDto): import("./models/issue.entity").Issue;
+    create(dto: CreateIssueDto, req: any): import("./models/issue.entity").Issue;
     updateStatus(id: string, dto: UpdateIssueStatusDto): import("./models/issue.entity").Issue | undefined;
     remove(id: string): import("./models/issue.entity").Issue | undefined;
 }

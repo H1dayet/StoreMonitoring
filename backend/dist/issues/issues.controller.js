@@ -28,8 +28,9 @@ let IssuesController = class IssuesController {
     findOne(id) {
         return this.issuesService.findOne(id);
     }
-    create(dto) {
-        return this.issuesService.create(dto);
+    create(dto, req) {
+        const user = req.user;
+        return this.issuesService.create(dto, user);
     }
     updateStatus(id, dto) {
         return this.issuesService.updateStatus(id, dto);
@@ -56,8 +57,9 @@ __decorate([
     (0, common_1.Post)(),
     (0, common_1.UseGuards)(admin_guard_1.AdminGuard),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_issue_dto_1.CreateIssueDto]),
+    __metadata("design:paramtypes", [create_issue_dto_1.CreateIssueDto, Object]),
     __metadata("design:returntype", void 0)
 ], IssuesController.prototype, "create", null);
 __decorate([

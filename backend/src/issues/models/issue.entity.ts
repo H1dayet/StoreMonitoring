@@ -21,6 +21,10 @@ export interface Issue {
   status: IssueStatus;
   severity: IssueSeverity;
   reason: IssueReason;
+  // Creator info
+  createdById?: string;
+  createdByUsername?: string;
+  createdByName?: string;
   createdAt: Date;
   updatedAt: Date;
   // When the issue is resolved/closed, this marks the end of downtime

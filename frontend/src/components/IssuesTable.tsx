@@ -65,6 +65,7 @@ export const IssuesTable: React.FC<Props> = ({ issues, onStatusChange, reasonLab
         <Tr>
           <Th minW="200px">Store</Th>
           <Th minW="240px">Reason</Th>
+          <Th minW="180px">Opened by</Th>
           <Th minW="180px">Created</Th>
           <Th minW="140px">Downtime</Th>
           <Th minW="160px">Status</Th>
@@ -78,6 +79,9 @@ export const IssuesTable: React.FC<Props> = ({ issues, onStatusChange, reasonLab
               {issue.storeCode ? `${storeNameByCode[issue.storeCode] || 'Unknown'} (${issue.storeCode})` : '-'}
             </Td>
             <Td>{reasonLabels[issue.reason]}</Td>
+            <Td>
+              <Text>{issue.createdByName || issue.createdByUsername || '-'}</Text>
+            </Td>
             <Td><Text fontFamily="mono">{formatDateTime(issue.createdAt)}</Text></Td>
             <Td><Text>{formatDuration(issue.createdAt, issue.endedAt)}</Text></Td>
             <Td>
@@ -101,7 +105,7 @@ export const IssuesTable: React.FC<Props> = ({ issues, onStatusChange, reasonLab
         ))}
         {!issues.length && (
           <Tr>
-            <Td colSpan={6}>No issues</Td>
+            <Td colSpan={7}>No issues</Td>
           </Tr>
         )}
       </Tbody>

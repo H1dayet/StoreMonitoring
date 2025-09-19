@@ -17,6 +17,9 @@ export interface Issue {
   status: IssueStatus;
   severity: IssueSeverity;
   reason: IssueReason;
+  createdById?: string;
+  createdByUsername?: string;
+  createdByName?: string;
   createdAt: string;
   updatedAt: string;
   endedAt?: string;

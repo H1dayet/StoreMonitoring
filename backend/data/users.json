@@ -18,5 +18,15 @@
     "passwordHash": "$2b$10$xqmwlQhpGA50NZSUmKeIl.nzN.XCebLqu0c4X0vRFWfuL7OFAxPTG",
     "createdAt": "2025-09-18T12:47:14.550Z",
     "updatedAt": "2025-09-18T12:47:14.550Z"
+  },
+  {
+    "id": "f252867a-785a-44cb-b716-8bbae096404f",
+    "username": "Hidayat",
+    "name": "Hidayat Huseynov",
+    "role": "admin",
+    "active": true,
+    "passwordHash": "$2b$10$MFV/dp1Qzb3dGa8jdWt4YO/fTdxfotVIykQxXL8rQU6BBBG8dLnd2",
+    "createdAt": "2025-09-19T05:50:48.021Z",
+    "updatedAt": "2025-09-19T05:50:48.021Z"
   }
 ]

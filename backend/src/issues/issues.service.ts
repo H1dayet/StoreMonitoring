@@ -6,6 +6,7 @@ import { v4 as uuid } from 'uuid';
 import { storeMap } from '../stores/stores.data';
 import * as fs from 'fs';
 import * as path from 'path';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class IssuesService {
@@ -13,7 +14,7 @@ export class IssuesService {
   private readonly dataDir = path.join(process.cwd(), 'data');
   private readonly dataFile = path.join(this.dataDir, 'issues.json');
 
-  constructor() {
+  constructor(private readonly usersService: UsersService) {
     this.bootstrapFromDisk();
   }
 
@@ -27,6 +28,7 @@ export class IssuesService {
         const arr = JSON.parse(raw) as any[];
         this.issues = (arr || []).map((i) => ({
           ...i,
+          // keep createdBy fields as-is if present
           createdAt: new Date(i.createdAt),
           updatedAt: new Date(i.updatedAt),
           endedAt: i.endedAt ? new Date(i.endedAt) : undefined,
@@ -86,7 +88,8 @@ export class IssuesService {
     return this.issues.find((i) => i.id === id);
   }
 
-  create(dto: CreateIssueDto): Issue {
+  create(dto: CreateIssueDto, user?: { sub?: string; username?: string; name?: string }): Issue {
+    const creator = user?.username ? this.usersService.findByUsername(user.username) : undefined;
     if (!dto.storeCode || !storeMap[dto.storeCode]) {
       throw new BadRequestException('Invalid storeCode');
     }
@@ -98,6 +101,9 @@ export class IssuesService {
       reason: dto.reason,
       storeCode: dto.storeCode,
       status: 'open',
+  createdById: user?.sub,
+  createdByUsername: user?.username,
+  createdByName: creator?.name ?? user?.name,
       createdAt: new Date(),
       updatedAt: new Date(),
     };

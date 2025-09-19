@@ -10,6 +10,9 @@ export interface Issue {
     status: IssueStatus;
     severity: IssueSeverity;
     reason: IssueReason;
+    createdById?: string;
+    createdByUsername?: string;
+    createdByName?: string;
     createdAt: Date;
     updatedAt: Date;
     endedAt?: Date;

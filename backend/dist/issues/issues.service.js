@@ -48,8 +48,10 @@ const uuid_1 = require("uuid");
 const stores_data_1 = require("../stores/stores.data");
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
+const users_service_1 = require("../users/users.service");
 let IssuesService = class IssuesService {
-    constructor() {
+    constructor(usersService) {
+        this.usersService = usersService;
         this.issues = [];
         this.dataDir = path.join(process.cwd(), 'data');
         this.dataFile = path.join(this.dataDir, 'issues.json');
@@ -120,7 +122,8 @@ let IssuesService = class IssuesService {
     findOne(id) {
         return this.issues.find((i) => i.id === id);
     }
-    create(dto) {
+    create(dto, user) {
+        const creator = user?.username ? this.usersService.findByUsername(user.username) : undefined;
         if (!dto.storeCode || !stores_data_1.storeMap[dto.storeCode]) {
             throw new common_1.BadRequestException('Invalid storeCode');
         }
@@ -132,6 +135,9 @@ let IssuesService = class IssuesService {
             reason: dto.reason,
             storeCode: dto.storeCode,
             status: 'open',
+            createdById: user?.sub,
+            createdByUsername: user?.username,
+            createdByName: creator?.name ?? user?.name,
             createdAt: new Date(),
             updatedAt: new Date(),
         };
@@ -167,6 +173,6 @@ let IssuesService = class IssuesService {
 exports.IssuesService = IssuesService;
 exports.IssuesService = IssuesService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [])
+    __metadata("design:paramtypes", [users_service_1.UsersService])
 ], IssuesService);
 //# sourceMappingURL=issues.service.js.map

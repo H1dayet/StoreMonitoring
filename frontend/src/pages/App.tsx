@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 // Removed IssueCards in favor of IssuesTable
 import { IssuesTable } from '../components/IssuesTable';
-import { fetchIssues, createIssue, updateIssueStatus, fetchStores, Store } from '../services/api';
-import { Issue, IssueStatus, IssueReason } from '../types';
 import {
   Box,
   Button,
@@ -30,7 +28,9 @@ import {
   Textarea,
 } from '@chakra-ui/react';
 import { AddIcon, MoonIcon, SunIcon } from '@chakra-ui/icons';
-import { getAuthUser } from '../services/auth';
+import { getAuthUser, clearToken } from '../services/auth';
+import { Issue, IssueReason, IssueStatus } from '../types';
+import { createIssue, fetchIssues, fetchStores, Store, updateIssueStatus } from '../services/api';
 
 export const App: React.FC = () => {
   const [issues, setIssues] = useState<Issue[]>([]);
@@ -39,6 +39,11 @@ export const App: React.FC = () => {
   const [filterStore, setFilterStore] = useState<string>('');
   const [filterReason, setFilterReason] = useState<IssueReason | ''>('');
   const [filterStatus, setFilterStatus] = useState<IssueStatus | ''>('');
+  // Time range filter with presets and optional custom date range (day precision)
+  type RangeKey = 'all' | 'today' | 'last7' | 'last30' | 'thisMonth' | 'lastMonth' | 'custom';
+  const [rangeKey, setRangeKey] = useState<RangeKey>('all'); // default: no time filter
+  const [filterStart, setFilterStart] = useState<string>(''); // YYYY-MM-DD
+  const [filterEnd, setFilterEnd] = useState<string>('');     // YYYY-MM-DD
 
   async function load() {
     setLoading(true);
@@ -117,21 +122,74 @@ export const App: React.FC = () => {
     return parts.join(' ');
   }
 
-  // Average downtime today across tickets CREATED today (including ongoing)
+  // Helpers for date-only parsing and range building
+  function parseDateOnly(s: string | undefined): Date | undefined {
+    if (!s) return undefined;
+    const [y, m, d] = s.split('-').map(Number);
+    if (!y || !m || !d) return undefined;
+    return new Date(y, m - 1, d, 0, 0, 0, 0); // local timezone start of day
+  }
+
+  function endOfDay(d: Date): Date {
+    const x = new Date(d);
+    x.setHours(23, 59, 59, 999);
+    return x;
+  }
+
+  function getPresetRange(key: RangeKey): { start?: Date; end?: Date } {
+    const nowD = new Date();
+    const startToday = new Date(nowD); startToday.setHours(0,0,0,0);
+    const endToday = new Date(nowD); endToday.setHours(23,59,59,999);
+    if (key === 'today') return { start: startToday, end: endToday };
+    if (key === 'last7') {
+      const start = new Date(startToday); start.setDate(start.getDate() - 6);
+      return { start, end: endToday };
+    }
+    if (key === 'last30') {
+      const start = new Date(startToday); start.setDate(start.getDate() - 29);
+      return { start, end: endToday };
+    }
+    if (key === 'thisMonth') {
+      const start = new Date(nowD.getFullYear(), nowD.getMonth(), 1, 0, 0, 0, 0);
+      return { start, end: endToday };
+    }
+    if (key === 'lastMonth') {
+      const start = new Date(nowD.getFullYear(), nowD.getMonth() - 1, 1, 0, 0, 0, 0);
+      const end = new Date(nowD.getFullYear(), nowD.getMonth(), 0, 23, 59, 59, 999); // last day prev month
+      return { start, end };
+    }
+    return { }; // 'all' or 'custom' handled separately
+  }
+
+  // Build active range for filtering (table + avg when active)
   const now = Date.now();
-  const todaysIssues = issues.filter(i => {
+  const customStart = parseDateOnly(filterStart);
+  const customEnd = filterEnd ? endOfDay(parseDateOnly(filterEnd)!) : undefined;
+  const preset = getPresetRange(rangeKey);
+  const hasCustomBounds = !!(customStart || customEnd);
+  const timeFilterActive = rangeKey !== 'all' && (rangeKey !== 'custom' || hasCustomBounds);
+  const rangeStart = rangeKey === 'custom' ? (customStart ?? undefined) : (preset.start ?? undefined);
+  const rangeEnd = rangeKey === 'custom' ? (customEnd ?? undefined) : (preset.end ?? undefined);
+
+  // If no time filter is active, average downtime defaults to today
+  const avgRangeStart = timeFilterActive ? (rangeStart ?? new Date(0)) : todayStart;
+  const avgRangeEnd = timeFilterActive ? (rangeEnd ?? new Date()) : todayEnd;
+
+  const rangeIssues = issues.filter(i => {
     const created = new Date(i.createdAt);
-    return created >= todayStart && created <= todayEnd;
+    const afterStart = !avgRangeStart || created >= avgRangeStart;
+    const beforeEnd = !avgRangeEnd || created <= avgRangeEnd;
+    return afterStart && beforeEnd;
   });
-  const todaysDurations = todaysIssues.map(i => {
+  const rangeDurations = rangeIssues.map(i => {
     const createdMs = new Date(i.createdAt).getTime();
     const endedMs = i.endedAt ? new Date(i.endedAt).getTime() : now;
     return Math.max(0, endedMs - createdMs);
   });
-  const avgDowntimeTodayMs = todaysDurations.length
-    ? Math.round(todaysDurations.reduce((a,b)=>a+b,0) / todaysDurations.length)
+  const avgDowntimeMs = rangeDurations.length
+    ? Math.round(rangeDurations.reduce((a,b)=>a+b,0) / rangeDurations.length)
     : 0;
-  const avgDowntimeTodayLabel = formatDurationMs(avgDowntimeTodayMs);
+  const avgDowntimeLabel = formatDurationMs(avgDowntimeMs);
 
   // Close modal after successful creation
   async function handleCreateAndClose(e: React.FormEvent<HTMLFormElement>) {
@@ -139,16 +197,25 @@ export const App: React.FC = () => {
     onClose();
   }
 
-  const filteredIssues = issues.filter(i =>
-    (!filterStore || i.storeCode === filterStore) &&
-    (!filterReason || i.reason === filterReason) &&
-    (!filterStatus || i.status === filterStatus)
-  );
+  const filteredIssues = issues.filter(i => {
+    const created = new Date(i.createdAt);
+    const withinStart = !timeFilterActive || !rangeStart || created >= rangeStart;
+    const withinEnd = !timeFilterActive || !rangeEnd || created <= rangeEnd;
+    return (
+      (!filterStore || i.storeCode === filterStore) &&
+      (!filterReason || i.reason === filterReason) &&
+      (!filterStatus || i.status === filterStatus) &&
+      withinStart && withinEnd
+    );
+  });
 
   function clearFilters() {
     setFilterStore('');
     setFilterReason('');
     setFilterStatus('');
+  setRangeKey('all');
+  setFilterStart('');
+  setFilterEnd('');
   }
 
   const authUser = getAuthUser();
@@ -160,12 +227,17 @@ export const App: React.FC = () => {
         <HStack mb={6}>
           <Heading size="lg">Mağaza Dayanma Monitoru</Heading>
           <Spacer />
+          {isAdmin && (
           <Button as="a" href="#/admin" variant="outline" mr={2}>Admin</Button>
+          )}
           {isAdmin && (
           <Button colorScheme="teal" leftIcon={<AddIcon boxSize={3} />} onClick={onOpen} mr={2}>
             New Issue
           </Button>
           )}
+          <Button onClick={() => clearToken()} colorScheme="red" variant="outline" mr={2}>
+            Logout
+          </Button>
           <IconButton
             aria-label="Toggle color mode"
             onClick={toggleColorMode}
@@ -176,7 +248,7 @@ export const App: React.FC = () => {
 
         {loading && <Text mb={3}>Loading...</Text>}
         {/* Dashboard */}
-        <Box bg={panelBg} p={4} rounded="md" shadow="sm" borderWidth="1px" mb={4}>
+    <Box bg={panelBg} p={4} rounded="md" shadow="sm" borderWidth="1px" mb={4}>
           <SimpleGrid columns={{ base: 1, md: 3 }} gap={4}>
             <Stat>
               <StatLabel>Active (Open + Investigating)</StatLabel>
@@ -187,15 +259,15 @@ export const App: React.FC = () => {
               <StatNumber>{solvedTodayCount}</StatNumber>
             </Stat>
             <Stat>
-              <StatLabel>Avg downtime today</StatLabel>
-              <StatNumber>{avgDowntimeTodayLabel}</StatNumber>
+      <StatLabel>{timeFilterActive ? 'Avg downtime (filtered)' : 'Avg downtime today'}</StatLabel>
+      <StatNumber>{avgDowntimeLabel}</StatNumber>
             </Stat>
           </SimpleGrid>
         </Box>
 
         {/* Filters */}
         <Box bg={panelBg} p={3} rounded="md" shadow="sm" borderWidth="1px" mb={4}>
-          <HStack gap={3} align="center">
+          <HStack gap={3} align="center" flexWrap="wrap">
             <Select placeholder="All stores" value={filterStore} onChange={(e) => setFilterStore(e.target.value)} maxW="280px">
               {stores.map(s => (
                 <option key={s.code} value={s.code}>{s.code} - {s.name}</option>
@@ -211,6 +283,45 @@ export const App: React.FC = () => {
               <option value="investigating">Investigating</option>
               <option value="closed">Closed</option>
             </Select>
+            {/* Time range filter */}
+            <HStack gap={2} align="flex-end">
+              <Box minW="220px">
+                <Select
+                  value={rangeKey}
+                  onChange={(e) => setRangeKey(e.target.value as RangeKey)}
+                >
+                  <option value="all">All time</option>
+                  <option value="today">Today</option>
+                  <option value="last7">Last 7 days</option>
+                  <option value="last30">Last 30 days</option>
+                  <option value="thisMonth">This month</option>
+                  <option value="lastMonth">Last month</option>
+                  <option value="custom">Custom…</option>
+                </Select>
+              </Box>
+              {rangeKey === 'custom' && (
+                <HStack gap={2}>
+                  <Box>
+                    <Text fontSize="xs" color="gray.500" mb={1}>Start date</Text>
+                    <input
+                      type="date"
+                      value={filterStart}
+                      onChange={(e) => setFilterStart(e.target.value)}
+                      style={{ padding: '6px', border: '1px solid var(--chakra-colors-gray-200)', borderRadius: 6 }}
+                    />
+                  </Box>
+                  <Box>
+                    <Text fontSize="xs" color="gray.500" mb={1}>End date</Text>
+                    <input
+                      type="date"
+                      value={filterEnd}
+                      onChange={(e) => setFilterEnd(e.target.value)}
+                      style={{ padding: '6px', border: '1px solid var(--chakra-colors-gray-200)', borderRadius: 6 }}
+                    />
+                  </Box>
+                </HStack>
+              )}
+            </HStack>
             <Spacer />
             <Button onClick={clearFilters} variant="ghost">Clear</Button>
           </HStack>

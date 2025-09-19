@@ -1,7 +1,5 @@
 import React from 'react';
 import { getAuthUser } from '../services/auth';
-import { Issue, IssueStatus, IssueReason } from '../types';
-import { StatusBadge } from './StatusBadge';
 import {
   Table,
   Thead,
@@ -21,6 +19,8 @@ import {
   ModalCloseButton,
   ModalBody,
 } from '@chakra-ui/react';
+import { StatusBadge } from './StatusBadge';
+import { Issue, IssueReason, IssueStatus } from '../types';
 
 interface Props {
   issues: Issue[];

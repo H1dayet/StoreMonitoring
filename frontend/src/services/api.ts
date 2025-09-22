@@ -48,6 +48,25 @@ export async function fetchStores(): Promise<Store[]> {
   return res.json();
 }
 
+export async function createStore(data: { code: string; name: string }): Promise<Store> {
+  const res = await fetch(`${BASE_URL}/stores`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error('Failed to add store');
+  return res.json();
+}
+
+export async function deleteStoreApi(code: string): Promise<{ deleted: boolean }> {
+  const res = await fetch(`${BASE_URL}/stores/${encodeURIComponent(code)}`, {
+    method: 'DELETE',
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error('Failed to delete store');
+  return res.json();
+}
+
 // Admin: Users API (protected)
 export interface AdminUser {
   id: string;

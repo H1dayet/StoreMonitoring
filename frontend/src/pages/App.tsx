@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState, useDeferredValue } from 'react';
 // Removed IssueCards in favor of IssuesTable
 import { IssuesTable } from '../components/IssuesTable';
 import {
@@ -8,6 +8,7 @@ import {
   Heading,
   HStack,
   Select,
+  Input,
   SimpleGrid,
   Text,
   useColorMode,
@@ -26,8 +27,12 @@ import {
   StatLabel,
   StatNumber,
   Textarea,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
 } from '@chakra-ui/react';
-import { AddIcon, MoonIcon, SunIcon } from '@chakra-ui/icons';
+import { AddIcon, MoonIcon, SunIcon, ChevronDownIcon } from '@chakra-ui/icons';
 import { getAuthUser, clearToken } from '../services/auth';
 import { Issue, IssueReason, IssueStatus } from '../types';
 import { createIssue, fetchIssues, fetchStores, Store, updateIssueStatus } from '../services/api';
@@ -39,6 +44,21 @@ export const App: React.FC = () => {
   const [filterStore, setFilterStore] = useState<string>('');
   const [filterReason, setFilterReason] = useState<IssueReason | ''>('');
   const [filterStatus, setFilterStatus] = useState<IssueStatus | ''>('');
+  const [storeQuery, setStoreQuery] = useState<string>('');
+  const [newIssueStoreCode, setNewIssueStoreCode] = useState<string>('');
+  const [newIssueStoreQuery, setNewIssueStoreQuery] = useState<string>('');
+  const deferredNewIssueQuery = useDeferredValue(newIssueStoreQuery);
+  const filteredNewIssueStores = useMemo(() => {
+    const q = deferredNewIssueQuery.trim().toLowerCase();
+    if (!q) return stores;
+    return stores.filter(s => s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q));
+  }, [stores, deferredNewIssueQuery]);
+  const deferredStoreQuery = useDeferredValue(storeQuery);
+  const filteredStores = useMemo(() => {
+    const q = deferredStoreQuery.trim().toLowerCase();
+    if (!q) return stores;
+    return stores.filter(s => s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q));
+  }, [stores, deferredStoreQuery]);
   // Time range filter with presets and optional custom date range (day precision)
   type RangeKey = 'all' | 'today' | 'last7' | 'last30' | 'thisMonth' | 'lastMonth' | 'custom';
   const [rangeKey, setRangeKey] = useState<RangeKey>('all'); // default: no time filter
@@ -65,7 +85,7 @@ export const App: React.FC = () => {
     const form = e.currentTarget;
     const formData = new FormData(form);
   const reason = String(formData.get('reason') || '') as IssueReason;
-  const storeCode = String(formData.get('storeCode') || '').trim();
+  const storeCode = (newIssueStoreCode || String(formData.get('storeCode') || '')).trim();
   const description = String(formData.get('description') || '').trim();
   if (!reason) return;
     // Auto-generate a concise title using reason label and store code
@@ -73,6 +93,8 @@ export const App: React.FC = () => {
   if (!storeCode) return;
   await createIssue({ title, description, reason, storeCode });
     form.reset();
+    setNewIssueStoreCode('');
+    setNewIssueStoreQuery('');
     load();
   }
 
@@ -213,6 +235,7 @@ export const App: React.FC = () => {
     setFilterStore('');
     setFilterReason('');
     setFilterStatus('');
+  setStoreQuery('');
   setRangeKey('all');
   setFilterStart('');
   setFilterEnd('');
@@ -281,24 +304,51 @@ export const App: React.FC = () => {
         {/* Filters */}
         <Box bg={panelBg} p={3} rounded="md" shadow="sm" borderWidth="1px" mb={4}>
           <HStack gap={3} align="center" flexWrap="wrap">
-            <Select placeholder="All stores" value={filterStore} onChange={(e) => setFilterStore(e.target.value)} maxW="280px" size="sm" variant="outline">
-              {stores.map(s => (
-                <option key={s.code} value={s.code}>{s.code} - {s.name}</option>
-              ))}
-            </Select>
-            <Select placeholder="All reasons" value={filterReason} onChange={(e) => setFilterReason(e.target.value as IssueReason)} maxW="320px" size="sm" variant="outline">
+            {/* Store dropdown with embedded search */}
+            <Menu isLazy>
+              <MenuButton as={Button} rightIcon={<ChevronDownIcon />} size="sm" variant="outline" maxW="280px">
+                {(() => {
+                  const sel = stores.find(s => s.code === filterStore);
+                  return sel ? `${sel.code} - ${sel.name}` : 'All stores';
+                })()}
+              </MenuButton>
+              <MenuList minW="320px" p={0}>
+                <Box p={2} borderBottomWidth="1px">
+                  <Input
+                    placeholder="Search stores..."
+                    size="sm"
+                    value={storeQuery}
+                    onChange={(e) => setStoreQuery(e.target.value)}
+                  />
+                </Box>
+                <MenuItem onClick={() => { setFilterStore(''); }}>All stores</MenuItem>
+                <Box maxH="260px" overflowY="auto">
+                  {filteredStores
+                    .slice(0, 200)
+                    .map(s => (
+                      <MenuItem key={s.code} onClick={() => { setFilterStore(s.code); }}>
+                        {s.code} - {s.name}
+                      </MenuItem>
+                    ))}
+                  {filteredStores.length > 200 && (
+                    <Text px={3} py={2} fontSize="xs" color="gray.500">Showing first 200 of {filteredStores.length} results… Refine your search.</Text>
+                  )}
+                </Box>
+              </MenuList>
+            </Menu>
+            <Select placeholder="All reasons" value={filterReason} onChange={(e) => setFilterReason(e.target.value as IssueReason)} maxW="250px" size="sm" variant="outline">
               {Object.entries(reasonLabels).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
               ))}
             </Select>
-            <Select placeholder="All statuses" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as IssueStatus)} maxW="220px" size="sm" variant="outline">
+            <Select placeholder="All statuses" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as IssueStatus)} maxW="150px" size="sm" variant="outline">
               <option value="open">Open</option>
               <option value="investigating">Investigating</option>
               <option value="closed">Closed</option>
             </Select>
             {/* Time range filter */}
             <HStack gap={2} align="flex-end">
-              <Box minW="220px">
+              <Box minW="160px">
                 <Select
                   value={rangeKey}
                   onChange={(e) => setRangeKey(e.target.value as RangeKey)}
@@ -367,9 +417,38 @@ export const App: React.FC = () => {
                     <option key={key} value={key}>{label}</option>
                   ))}
                 </Select>
-                <Select name="storeCode" placeholder="Select store" isRequired size="sm" variant="outline">
-                  {stores.map(s => <option key={s.code} value={s.code}>{s.code} - {s.name}</option>)}
-                </Select>
+                {/* Store dropdown with embedded search for new issue */}
+                <Box>
+                  <input type="hidden" name="storeCode" value={newIssueStoreCode} />
+                  <Menu isLazy>
+                    <MenuButton as={Button} rightIcon={<ChevronDownIcon />} size="sm" variant="outline" width="100%">
+                      {(() => {
+                        const sel = stores.find(s => s.code === newIssueStoreCode);
+                        return sel ? `${sel.code} - ${sel.name}` : 'Select store';
+                      })()}
+                    </MenuButton>
+                    <MenuList minW="320px" p={0}>
+                      <Box p={2} borderBottomWidth="1px">
+                        <Input
+                          placeholder="Search stores..."
+                          size="sm"
+                          value={newIssueStoreQuery}
+                          onChange={(e) => setNewIssueStoreQuery(e.target.value)}
+                        />
+                      </Box>
+                      <Box maxH="260px" overflowY="auto">
+                        {filteredNewIssueStores.slice(0, 200).map(s => (
+                          <MenuItem key={s.code} onClick={() => { setNewIssueStoreCode(s.code); }}>
+                            {s.code} - {s.name}
+                          </MenuItem>
+                        ))}
+                        {filteredNewIssueStores.length > 200 && (
+                          <Text px={3} py={2} fontSize="xs" color="gray.500">Showing first 200 of {filteredNewIssueStores.length} results… Refine your search.</Text>
+                        )}
+                      </Box>
+                    </MenuList>
+                  </Menu>
+                </Box>
               </SimpleGrid>
               <Box mt={3}>
                 <Textarea name="description" placeholder="Add a short description (optional)" rows={4} />

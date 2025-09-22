@@ -89,9 +89,9 @@ export const IssuesTable: React.FC<Props> = ({ issues, onStatusChange, reasonLab
           <Th minW="200px">Store</Th>
           <Th minW="240px">Reason</Th>
           <Th minW="180px">Opened by</Th>
-          <Th minW="180px">Created</Th>
-          <Th minW="140px">Downtime</Th>
           <Th minW="160px">Status</Th>
+          <Th minW="140px">Downtime</Th>
+          <Th minW="180px">Created</Th>
           <Th minW="120px">Details</Th>
         </Tr>
       </Thead>
@@ -105,8 +105,6 @@ export const IssuesTable: React.FC<Props> = ({ issues, onStatusChange, reasonLab
             <Td>
               <Text>{issue.createdByName || issue.createdByUsername || '-'}</Text>
             </Td>
-            <Td><Text fontFamily="mono">{formatDateTime(issue.createdAt)}</Text></Td>
-            <Td><Text>{formatDuration(issue.createdAt, issue.endedAt)}</Text></Td>
             <Td>
               {onStatusChange && isAdmin ? (
                 (() => {
@@ -134,6 +132,8 @@ export const IssuesTable: React.FC<Props> = ({ issues, onStatusChange, reasonLab
                 <StatusBadge status={issue.status} />
               )}
             </Td>
+            <Td><Text>{formatDuration(issue.createdAt, issue.endedAt)}</Text></Td>
+            <Td><Text fontFamily="mono">{formatDateTime(issue.createdAt)}</Text></Td>
             <Td>
               <Button size="sm" variant="outline" onClick={() => openDesc(issue)}>View</Button>
             </Td>

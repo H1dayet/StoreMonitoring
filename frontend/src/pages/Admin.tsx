@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { AdminUser, adminLogin, createUser, fetchUsers } from '../services/api';
+import { AdminUser, adminLogin, createUser, fetchUsers, createStore, deleteStoreApi } from '../services/api';
 import { authHeaders, setToken as storeToken, clearToken as clearStoredToken, setAuthUser } from '../services/auth';
 import {
   Box,
@@ -101,8 +101,12 @@ export const Admin: React.FC = () => {
         </HStack>
       </HStack>
 
-      {/* Create User */}
+  {/* Create User */}
       <CreateUserForm onCreated={loadUsers} />
+
+  {/* Add/Delete Store */}
+  <AddStoreForm />
+  <DeleteStoreForm />
 
       {/* Users Table */}
       <Box borderWidth="1px" rounded="md" p={4} mt={6}>
@@ -188,6 +192,87 @@ const CreateUserForm: React.FC<{ onCreated: () => void }> = ({ onCreated }) => {
             </Select>
           </FormControl>
           <Button type="submit" colorScheme="teal" isLoading={loading}>Create</Button>
+        </SimpleGrid>
+      </form>
+    </Box>
+  );
+};
+
+const DeleteStoreForm: React.FC = () => {
+  const [code, setCode] = useState('');
+  const [loading, setLoading] = useState(false);
+  const toast = useToast();
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const c = code.trim();
+      if (!c) throw new Error('Store code is required');
+      await deleteStoreApi(c);
+      setCode('');
+      toast({ status: 'success', title: 'Store deleted' });
+    } catch (e: any) {
+      toast({ status: 'error', title: 'Failed to delete store', description: e.message });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Box borderWidth="1px" rounded="md" p={4} mt={4}>
+      <Heading size="sm" mb={3}>Delete Store</Heading>
+      <form onSubmit={submit}>
+        <SimpleGrid columns={{ base: 1, md: 3 }} gap={3} alignItems="end">
+          <FormControl isRequired>
+            <FormLabel>Store code</FormLabel>
+            <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="e.g. 1601" />
+          </FormControl>
+          <Box />
+          <Button type="submit" colorScheme="red" variant="outline" isLoading={loading}>Delete</Button>
+        </SimpleGrid>
+      </form>
+    </Box>
+  );
+};
+
+const AddStoreForm: React.FC = () => {
+  const [code, setCode] = useState('');
+  const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const toast = useToast();
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const c = code.trim();
+      const n = name.trim();
+      if (!c || !n) throw new Error('Code and name are required');
+      await createStore({ code: c, name: n });
+      setCode(''); setName('');
+      toast({ status: 'success', title: 'Store added' });
+    } catch (e: any) {
+      toast({ status: 'error', title: 'Failed to add store', description: e.message });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Box borderWidth="1px" rounded="md" p={4} mt={6}>
+      <Heading size="md" mb={3}>Add Store</Heading>
+      <form onSubmit={submit}>
+        <SimpleGrid columns={{ base: 1, md: 3 }} gap={3} alignItems="end">
+          <FormControl isRequired>
+            <FormLabel>Store code</FormLabel>
+            <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="e.g. 1601" />
+          </FormControl>
+          <FormControl isRequired>
+            <FormLabel>Store name</FormLabel>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. OBA-XYZ 1" />
+          </FormControl>
+          <Button type="submit" colorScheme="teal" isLoading={loading}>Add</Button>
         </SimpleGrid>
       </form>
     </Box>

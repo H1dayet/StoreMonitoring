@@ -4,7 +4,7 @@ import { IssueStatus } from '../types';
 
 const colorScheme: Record<IssueStatus, string> = {
   open: 'red',
-  investigating: 'orange',
+  investigating: 'yellow',
   closed: 'green',
 };
 

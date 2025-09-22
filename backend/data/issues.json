@@ -1,17 +1,46 @@
 [
   {
+    "id": "16ee3965-30fc-497a-abbb-28d555db0f32",
+    "title": "POSS kassa sıradan çıxib (174)",
+    "description": "",
+    "severity": "low",
+    "reason": "poss_kassa_siradan_cixdigi_zaman",
+    "storeCode": "174",
+    "status": "open",
+    "createdById": "f252867a-785a-44cb-b716-8bbae096404f",
+    "createdByUsername": "Hidayat",
+    "createdByName": "Hidayat Huseynov",
+    "createdAt": "2025-09-19T07:48:59.511Z",
+    "updatedAt": "2025-09-22T07:41:12.681Z"
+  },
+  {
+    "id": "1762f988-a01b-47e0-b533-64fa92b69316",
+    "title": "POSS kassa sıradan çıxib (1161)",
+    "description": "test",
+    "severity": "low",
+    "reason": "poss_kassa_siradan_cixdigi_zaman",
+    "storeCode": "1161",
+    "status": "investigating",
+    "createdById": "f252867a-785a-44cb-b716-8bbae096404f",
+    "createdByUsername": "Hidayat",
+    "createdByName": "Hidayat Huseynov",
+    "createdAt": "2025-09-19T07:33:14.556Z",
+    "updatedAt": "2025-09-22T07:37:14.060Z"
+  },
+  {
     "id": "26f9dc8c-9db8-48fe-9dce-260595d5d178",
     "title": "NBA tokeni sıradan çıxib (109)",
     "description": "",
     "severity": "low",
     "reason": "nba_tokeni_siradan_cixdigi_zaman",
     "storeCode": "109",
-    "status": "open",
+    "status": "closed",
     "createdById": "f252867a-785a-44cb-b716-8bbae096404f",
     "createdByUsername": "Hidayat",
     "createdByName": "Hidayat Huseynov",
     "createdAt": "2025-09-19T05:51:06.427Z",
-    "updatedAt": "2025-09-19T05:51:06.427Z"
+    "updatedAt": "2025-09-22T07:43:43.376Z",
+    "endedAt": "2025-09-22T07:43:43.376Z"
   },
   {
     "id": "8e70d53a-6bef-4fa1-8564-aff29772440f",
@@ -20,12 +49,13 @@
     "severity": "low",
     "reason": "poss_kassa_siradan_cixdigi_zaman",
     "storeCode": "105",
-    "status": "open",
+    "status": "closed",
     "createdById": "21b1a9ef-29e8-4484-90e4-c93fedb32533",
     "createdByUsername": "admin",
     "createdByName": "Administrator",
     "createdAt": "2025-09-19T05:49:17.976Z",
-    "updatedAt": "2025-09-19T05:49:17.976Z"
+    "updatedAt": "2025-09-22T07:13:07.915Z",
+    "endedAt": "2025-09-22T07:13:07.915Z"
   },
   {
     "id": "6df497f5-c486-405c-b792-05fb84cee8a0",
@@ -34,9 +64,10 @@
     "severity": "low",
     "reason": "poss_kassa_siradan_cixdigi_zaman",
     "storeCode": "182",
-    "status": "open",
+    "status": "closed",
     "createdAt": "2025-09-19T05:41:16.070Z",
-    "updatedAt": "2025-09-19T05:41:16.070Z"
+    "updatedAt": "2025-09-22T07:13:08.940Z",
+    "endedAt": "2025-09-22T07:13:08.940Z"
   },
   {
     "id": "27b5415f-ce43-4a1c-b3ca-ee55deeb006b",

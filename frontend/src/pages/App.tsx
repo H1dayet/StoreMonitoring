@@ -91,7 +91,7 @@ export const App: React.FC = () => {
     'elektrik_kesintisi': 'Elektrik kesintisi'
   };
 
-  const bg = useColorModeValue('gray.50', 'gray.800');
+  const bg = useColorModeValue('#3aa0e6', 'gray.800');
   const panelBg = useColorModeValue('white', 'gray.900');
   const { colorMode, toggleColorMode } = useColorMode();
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -171,7 +171,7 @@ export const App: React.FC = () => {
   const rangeStart = rangeKey === 'custom' ? (customStart ?? undefined) : (preset.start ?? undefined);
   const rangeEnd = rangeKey === 'custom' ? (customEnd ?? undefined) : (preset.end ?? undefined);
 
-  // If no time filter is active, average downtime defaults to today
+  // If no time filter is active, total downtime defaults to today
   const avgRangeStart = timeFilterActive ? (rangeStart ?? new Date(0)) : todayStart;
   const avgRangeEnd = timeFilterActive ? (rangeEnd ?? new Date()) : todayEnd;
 
@@ -186,10 +186,10 @@ export const App: React.FC = () => {
     const endedMs = i.endedAt ? new Date(i.endedAt).getTime() : now;
     return Math.max(0, endedMs - createdMs);
   });
-  const avgDowntimeMs = rangeDurations.length
-    ? Math.round(rangeDurations.reduce((a,b)=>a+b,0) / rangeDurations.length)
+  const totalDowntimeMs = rangeDurations.length
+    ? rangeDurations.reduce((a,b)=>a+b,0)
     : 0;
-  const avgDowntimeLabel = formatDurationMs(avgDowntimeMs);
+  const totalDowntimeLabel = formatDurationMs(totalDowntimeMs);
 
   // Close modal after successful creation
   async function handleCreateAndClose(e: React.FormEvent<HTMLFormElement>) {
@@ -228,14 +228,27 @@ export const App: React.FC = () => {
           <Heading size="lg">Mağaza Dayanma Monitoru</Heading>
           <Spacer />
           {isAdmin && (
-          <Button as="a" href="#/admin" variant="outline" mr={2}>Admin</Button>
+          <Button
+            as="a"
+            href="#/admin"
+            colorScheme="blue"
+            variant={colorMode === 'light' ? 'solid' : 'outline'}
+            mr={2}
+          >
+            Admin
+          </Button>
           )}
           {isAdmin && (
           <Button colorScheme="teal" leftIcon={<AddIcon boxSize={3} />} onClick={onOpen} mr={2}>
             New Issue
           </Button>
           )}
-          <Button onClick={() => clearToken()} colorScheme="red" variant="outline" mr={2}>
+          <Button
+            onClick={() => clearToken()}
+            colorScheme="red"
+            variant={colorMode === 'light' ? 'solid' : 'outline'}
+            mr={2}
+          >
             Logout
           </Button>
           <IconButton
@@ -259,8 +272,8 @@ export const App: React.FC = () => {
               <StatNumber>{solvedTodayCount}</StatNumber>
             </Stat>
             <Stat>
-      <StatLabel>{timeFilterActive ? 'Avg downtime (filtered)' : 'Avg downtime today'}</StatLabel>
-      <StatNumber>{avgDowntimeLabel}</StatNumber>
+              <StatLabel>{timeFilterActive ? 'Total downtime (filtered)' : 'Total downtime today'}</StatLabel>
+              <StatNumber>{totalDowntimeLabel}</StatNumber>
             </Stat>
           </SimpleGrid>
         </Box>
@@ -268,17 +281,17 @@ export const App: React.FC = () => {
         {/* Filters */}
         <Box bg={panelBg} p={3} rounded="md" shadow="sm" borderWidth="1px" mb={4}>
           <HStack gap={3} align="center" flexWrap="wrap">
-            <Select placeholder="All stores" value={filterStore} onChange={(e) => setFilterStore(e.target.value)} maxW="280px">
+            <Select placeholder="All stores" value={filterStore} onChange={(e) => setFilterStore(e.target.value)} maxW="280px" size="sm" variant="outline">
               {stores.map(s => (
                 <option key={s.code} value={s.code}>{s.code} - {s.name}</option>
               ))}
             </Select>
-            <Select placeholder="All reasons" value={filterReason} onChange={(e) => setFilterReason(e.target.value as IssueReason)} maxW="320px">
+            <Select placeholder="All reasons" value={filterReason} onChange={(e) => setFilterReason(e.target.value as IssueReason)} maxW="320px" size="sm" variant="outline">
               {Object.entries(reasonLabels).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
               ))}
             </Select>
-            <Select placeholder="All statuses" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as IssueStatus)} maxW="220px">
+            <Select placeholder="All statuses" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as IssueStatus)} maxW="220px" size="sm" variant="outline">
               <option value="open">Open</option>
               <option value="investigating">Investigating</option>
               <option value="closed">Closed</option>
@@ -289,6 +302,8 @@ export const App: React.FC = () => {
                 <Select
                   value={rangeKey}
                   onChange={(e) => setRangeKey(e.target.value as RangeKey)}
+                  size="sm"
+                  variant="outline"
                 >
                   <option value="all">All time</option>
                   <option value="today">Today</option>
@@ -347,12 +362,12 @@ export const App: React.FC = () => {
           <ModalBody>
             <form id="create-issue-form" onSubmit={handleCreateAndClose}>
               <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
-                <Select name="reason" placeholder="Select reason" isRequired>
+                <Select name="reason" placeholder="Select reason" isRequired size="sm" variant="outline">
                   {Object.entries(reasonLabels).map(([key, label]) => (
                     <option key={key} value={key}>{label}</option>
                   ))}
                 </Select>
-                <Select name="storeCode" placeholder="Select store" isRequired>
+                <Select name="storeCode" placeholder="Select store" isRequired size="sm" variant="outline">
                   {stores.map(s => <option key={s.code} value={s.code}>{s.code} - {s.name}</option>)}
                 </Select>
               </SimpleGrid>

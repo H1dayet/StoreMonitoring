@@ -1,17 +1,31 @@
 [
   {
+    "id": "0be59d96-fb86-4b85-9394-84a707aaa52b",
+    "title": "POSS kassa sıradan çıxib (122)",
+    "description": ",ykhoyklhk tlh][t;ghl]t[h; ;h][tlhp[t,h,e\n\ntg,tghpt,h[p,etpghlt\ngtp\ng.dtp.gdptg.ep\ntgldtgpt,.dpgdt",
+    "severity": "low",
+    "reason": "poss_kassa_siradan_cixdigi_zaman",
+    "storeCode": "122",
+    "status": "open",
+    "createdById": "21b1a9ef-29e8-4484-90e4-c93fedb32533",
+    "createdByUsername": "admin",
+    "createdByName": "Administrator",
+    "createdAt": "2025-09-23T10:52:20.285Z",
+    "updatedAt": "2025-09-23T10:52:20.285Z"
+  },
+  {
     "id": "a7193bda-b586-451b-a52e-6afdd1bf8bb2",
     "title": "İnternet bağlantısındakı problem (106)",
     "description": "",
     "severity": "low",
     "reason": "internet_baglantisi_problemi",
     "storeCode": "106",
-    "status": "investigating",
+    "status": "open",
     "createdById": "21b1a9ef-29e8-4484-90e4-c93fedb32533",
     "createdByUsername": "admin",
     "createdByName": "Administrator",
     "createdAt": "2025-09-22T11:26:50.287Z",
-    "updatedAt": "2025-09-22T12:32:28.311Z"
+    "updatedAt": "2025-09-23T10:38:58.615Z"
   },
   {
     "id": "bae16800-a003-4874-8868-615ab14f9037",
@@ -20,12 +34,13 @@
     "severity": "low",
     "reason": "nba_tokeni_siradan_cixdigi_zaman",
     "storeCode": "104",
-    "status": "open",
+    "status": "closed",
     "createdById": "21b1a9ef-29e8-4484-90e4-c93fedb32533",
     "createdByUsername": "admin",
     "createdByName": "Administrator",
     "createdAt": "2025-09-22T11:26:30.318Z",
-    "updatedAt": "2025-09-22T11:26:30.318Z"
+    "updatedAt": "2025-09-23T10:38:46.667Z",
+    "endedAt": "2025-09-23T10:38:46.667Z"
   },
   {
     "id": "16ee3965-30fc-497a-abbb-28d555db0f32",

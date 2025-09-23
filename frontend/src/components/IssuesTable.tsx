@@ -7,7 +7,6 @@ import {
   Tr,
   Th,
   Td,
-  Select as CSelect,
   Text,
   TableContainer,
   Button,
@@ -19,7 +18,12 @@ import {
   ModalCloseButton,
   ModalBody,
   useColorModeValue,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
 } from '@chakra-ui/react';
+import { ChevronDownIcon } from '@chakra-ui/icons';
 import { StatusBadge } from './StatusBadge';
 import { Issue, IssueReason, IssueStatus } from '../types';
 
@@ -60,6 +64,43 @@ export const IssuesTable: React.FC<Props> = ({ issues, onStatusChange, reasonLab
   const [activeIssue, setActiveIssue] = React.useState<Issue | null>(null);
   function openDesc(issue: Issue) { setActiveIssue(issue); onOpen(); }
 
+  // Top + bottom synchronized horizontal scrollbars
+  const topRef = React.useRef<HTMLDivElement | null>(null);
+  const bottomRef = React.useRef<HTMLDivElement | null>(null);
+  const isSyncing = React.useRef(false);
+  const [contentWidth, setContentWidth] = React.useState(0);
+  React.useEffect(() => {
+    const measure = () => {
+      const el = bottomRef.current;
+      if (!el) return;
+      setContentWidth(el.scrollWidth);
+      // Keep top scrollLeft aligned on relayout
+      if (topRef.current) topRef.current.scrollLeft = el.scrollLeft;
+    };
+    const id = window.requestAnimationFrame(measure);
+    window.addEventListener('resize', measure);
+    return () => {
+      window.cancelAnimationFrame(id);
+      window.removeEventListener('resize', measure);
+    };
+  }, [issues]);
+  const onTopScroll = () => {
+    if (isSyncing.current) return;
+    const t = topRef.current, b = bottomRef.current;
+    if (!t || !b) return;
+    isSyncing.current = true;
+    b.scrollLeft = t.scrollLeft;
+    isSyncing.current = false;
+  };
+  const onBottomScroll = () => {
+    if (isSyncing.current) return;
+    const t = topRef.current, b = bottomRef.current;
+    if (!t || !b) return;
+    isSyncing.current = true;
+    t.scrollLeft = b.scrollLeft;
+    isSyncing.current = false;
+  };
+
   const getSelectColors = (status: IssueStatus) => {
     if (status === 'open') {
       return {
@@ -82,7 +123,12 @@ export const IssuesTable: React.FC<Props> = ({ issues, onStatusChange, reasonLab
     };
   };
   return (
-    <TableContainer w="full" overflowX="auto">
+    <>
+      {/* Top horizontal scrollbar */}
+      <div ref={topRef} onScroll={onTopScroll} style={{ overflowX: 'auto', width: '100%', height: 12, marginBottom: 8 }} aria-hidden>
+        <div style={{ width: contentWidth, height: 1 }} />
+      </div>
+      <TableContainer w="full" overflowX="auto" ref={bottomRef} onScroll={onBottomScroll}>
       <Table size="sm" variant="simple" width="full" sx={{ tableLayout: 'auto' }}>
       <Thead>
         <Tr>
@@ -110,22 +156,27 @@ export const IssuesTable: React.FC<Props> = ({ issues, onStatusChange, reasonLab
                 (() => {
                   const c = getSelectColors(issue.status);
                   return (
-                    <CSelect
-                      size="sm"
-                      width="36"
-                      value={issue.status}
-                      onChange={(e) => onStatusChange(issue.id, e.target.value as IssueStatus)}
-                      variant="filled"
-                      bg={c.bg}
-                      color={c.color}
-                      borderColor={c.border}
-                      _hover={{ bg: c.bg }}
-                      _focus={{ bg: c.bg, borderColor: c.border, boxShadow: '0 0 0 1px var(--chakra-colors-gray-400)' }}
-                    >
-                  <option value="open">open</option>
-                  <option value="investigating">investigating</option>
-                  <option value="closed">closed</option>
-                </CSelect>
+                    <Menu isLazy>
+                      <MenuButton
+                        as={Button}
+                        rightIcon={<ChevronDownIcon />}
+                        size="sm"
+                        variant="solid"
+                        width="36"
+                        bg={c.bg}
+                        color={c.color}
+                        borderColor={c.border}
+                        _hover={{ bg: c.bg }}
+                        _active={{ bg: c.bg }}
+                      >
+                        {issue.status === 'open' ? 'Open' : issue.status === 'investigating' ? 'Investigating' : 'Closed'}
+                      </MenuButton>
+                      <MenuList minW="160px">
+                        <MenuItem onClick={() => onStatusChange(issue.id, 'open')}>Open</MenuItem>
+                        <MenuItem onClick={() => onStatusChange(issue.id, 'investigating')}>Investigating</MenuItem>
+                        <MenuItem onClick={() => onStatusChange(issue.id, 'closed')}>Closed</MenuItem>
+                      </MenuList>
+                    </Menu>
                   );
                 })()
               ) : (
@@ -165,5 +216,6 @@ export const IssuesTable: React.FC<Props> = ({ issues, onStatusChange, reasonLab
       </ModalContent>
     </Modal>
     </TableContainer>
+    </>
   );
 };

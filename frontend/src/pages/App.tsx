@@ -7,7 +7,6 @@ import {
   Container,
   Heading,
   HStack,
-  Select,
   Input,
   SimpleGrid,
   Text,
@@ -47,6 +46,7 @@ export const App: React.FC = () => {
   const [storeQuery, setStoreQuery] = useState<string>('');
   const [newIssueStoreCode, setNewIssueStoreCode] = useState<string>('');
   const [newIssueStoreQuery, setNewIssueStoreQuery] = useState<string>('');
+  const [newIssueReason, setNewIssueReason] = useState<IssueReason | ''>('');
   const deferredNewIssueQuery = useDeferredValue(newIssueStoreQuery);
   const filteredNewIssueStores = useMemo(() => {
     const q = deferredNewIssueQuery.trim().toLowerCase();
@@ -80,22 +80,24 @@ export const App: React.FC = () => {
     fetchStores().then(setStores).catch(() => setStores([]));
   }, []);
 
-  async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
+  async function handleCreate(e: React.FormEvent<HTMLFormElement>): Promise<boolean> {
     e.preventDefault();
     const form = e.currentTarget;
     const formData = new FormData(form);
   const reason = String(formData.get('reason') || '') as IssueReason;
   const storeCode = (newIssueStoreCode || String(formData.get('storeCode') || '')).trim();
   const description = String(formData.get('description') || '').trim();
-  if (!reason) return;
+  if (!reason) return false;
     // Auto-generate a concise title using reason label and store code
     const title = `${reasonLabels[reason] || reason}${storeCode ? ` (${storeCode})` : ''}`;
-  if (!storeCode) return;
+  if (!storeCode) return false;
   await createIssue({ title, description, reason, storeCode });
     form.reset();
     setNewIssueStoreCode('');
     setNewIssueStoreQuery('');
+    setNewIssueReason('');
     load();
+    return true;
   }
 
   async function handleStatusChange(id: string, status: IssueStatus) {
@@ -117,6 +119,15 @@ export const App: React.FC = () => {
   const panelBg = useColorModeValue('white', 'gray.900');
   const { colorMode, toggleColorMode } = useColorMode();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const rangeLabel = (key: RangeKey) => (
+    key === 'all' ? 'All time' :
+    key === 'today' ? 'Today' :
+    key === 'last7' ? 'Last 7 days' :
+    key === 'last30' ? 'Last 30 days' :
+    key === 'thisMonth' ? 'This month' :
+    key === 'lastMonth' ? 'Last month' :
+    'Custom…'
+  );
 
   // Dashboard metrics
   const openCount = issues.filter(i => i.status === 'open').length;
@@ -215,8 +226,8 @@ export const App: React.FC = () => {
 
   // Close modal after successful creation
   async function handleCreateAndClose(e: React.FormEvent<HTMLFormElement>) {
-    await handleCreate(e);
-    onClose();
+    const ok = await handleCreate(e);
+    if (ok) onClose();
   }
 
   const filteredIssues = issues.filter(i => {
@@ -312,7 +323,7 @@ export const App: React.FC = () => {
                   return sel ? `${sel.code} - ${sel.name}` : 'All stores';
                 })()}
               </MenuButton>
-              <MenuList minW="320px" p={0}>
+              <MenuList minW="280px" p={0}>
                 <Box p={2} borderBottomWidth="1px">
                   <Input
                     placeholder="Search stores..."
@@ -336,34 +347,44 @@ export const App: React.FC = () => {
                 </Box>
               </MenuList>
             </Menu>
-            <Select placeholder="All reasons" value={filterReason} onChange={(e) => setFilterReason(e.target.value as IssueReason)} maxW="250px" size="sm" variant="outline">
-              {Object.entries(reasonLabels).map(([key, label]) => (
-                <option key={key} value={key}>{label}</option>
-              ))}
-            </Select>
-            <Select placeholder="All statuses" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as IssueStatus)} maxW="150px" size="sm" variant="outline">
-              <option value="open">Open</option>
-              <option value="investigating">Investigating</option>
-              <option value="closed">Closed</option>
-            </Select>
+            <Menu isLazy>
+              <MenuButton as={Button} rightIcon={<ChevronDownIcon />} size="sm" variant="outline" maxW="280px">
+                {filterReason ? reasonLabels[filterReason] : 'All reasons'}
+              </MenuButton>
+              <MenuList minW="280px">
+                <MenuItem onClick={() => setFilterReason('' as any)}>All reasons</MenuItem>
+                {Object.entries(reasonLabels).map(([key, label]) => (
+                  <MenuItem key={key} onClick={() => setFilterReason(key as IssueReason)}>{label}</MenuItem>
+                ))}
+              </MenuList>
+            </Menu>
+            <Menu isLazy>
+              <MenuButton as={Button} rightIcon={<ChevronDownIcon />} size="sm" variant="outline" maxW="200px">
+                {filterStatus ? (filterStatus === 'open' ? 'Open' : filterStatus === 'investigating' ? 'Investigating' : 'Closed') : 'All statuses'}
+              </MenuButton>
+              <MenuList minW="140px">
+                <MenuItem onClick={() => setFilterStatus('' as any)}>All statuses</MenuItem>
+                <MenuItem onClick={() => setFilterStatus('open')}>Open</MenuItem>
+                <MenuItem onClick={() => setFilterStatus('investigating')}>Investigating</MenuItem>
+                <MenuItem onClick={() => setFilterStatus('closed')}>Closed</MenuItem>
+              </MenuList>
+            </Menu>
             {/* Time range filter */}
             <HStack gap={2} align="flex-end">
-              <Box minW="160px">
-                <Select
-                  value={rangeKey}
-                  onChange={(e) => setRangeKey(e.target.value as RangeKey)}
-                  size="sm"
-                  variant="outline"
-                >
-                  <option value="all">All time</option>
-                  <option value="today">Today</option>
-                  <option value="last7">Last 7 days</option>
-                  <option value="last30">Last 30 days</option>
-                  <option value="thisMonth">This month</option>
-                  <option value="lastMonth">Last month</option>
-                  <option value="custom">Custom…</option>
-                </Select>
-              </Box>
+              <Menu isLazy>
+                <MenuButton as={Button} rightIcon={<ChevronDownIcon />} size="sm" variant="outline" minW="120px">
+                  {rangeLabel(rangeKey)}
+                </MenuButton>
+                <MenuList minW="140px">
+                  <MenuItem onClick={() => setRangeKey('all')}>All time</MenuItem>
+                  <MenuItem onClick={() => setRangeKey('today')}>Today</MenuItem>
+                  <MenuItem onClick={() => setRangeKey('last7')}>Last 7 days</MenuItem>
+                  <MenuItem onClick={() => setRangeKey('last30')}>Last 30 days</MenuItem>
+                  <MenuItem onClick={() => setRangeKey('thisMonth')}>This month</MenuItem>
+                  <MenuItem onClick={() => setRangeKey('lastMonth')}>Last month</MenuItem>
+                  <MenuItem onClick={() => setRangeKey('custom')}>Custom…</MenuItem>
+                </MenuList>
+              </Menu>
               {rangeKey === 'custom' && (
                 <HStack gap={2}>
                   <Box>
@@ -412,11 +433,20 @@ export const App: React.FC = () => {
           <ModalBody>
             <form id="create-issue-form" onSubmit={handleCreateAndClose}>
               <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
-                <Select name="reason" placeholder="Select reason" isRequired size="sm" variant="outline">
-                  {Object.entries(reasonLabels).map(([key, label]) => (
-                    <option key={key} value={key}>{label}</option>
-                  ))}
-                </Select>
+                {/* Reason dropdown matching All stores style */}
+                <Box>
+                  <input type="hidden" name="reason" value={newIssueReason} />
+                  <Menu isLazy>
+                    <MenuButton as={Button} rightIcon={<ChevronDownIcon />} size="sm" variant="outline" width="100%">
+                      {newIssueReason ? reasonLabels[newIssueReason] : 'Select reason'}
+                    </MenuButton>
+                    <MenuList minW="280px">
+                      {Object.entries(reasonLabels).map(([key, label]) => (
+                        <MenuItem key={key} onClick={() => setNewIssueReason(key as IssueReason)}>{label}</MenuItem>
+                      ))}
+                    </MenuList>
+                  </Menu>
+                </Box>
                 {/* Store dropdown with embedded search for new issue */}
                 <Box>
                   <input type="hidden" name="storeCode" value={newIssueStoreCode} />
@@ -427,7 +457,7 @@ export const App: React.FC = () => {
                         return sel ? `${sel.code} - ${sel.name}` : 'Select store';
                       })()}
                     </MenuButton>
-                    <MenuList minW="320px" p={0}>
+                    <MenuList minW="280px" p={0}>
                       <Box p={2} borderBottomWidth="1px">
                         <Input
                           placeholder="Search stores..."

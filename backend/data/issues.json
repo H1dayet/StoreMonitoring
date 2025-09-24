@@ -6,12 +6,13 @@
     "severity": "low",
     "reason": "poss_kassa_siradan_cixdigi_zaman",
     "storeCode": "122",
-    "status": "open",
+    "status": "closed",
     "createdById": "21b1a9ef-29e8-4484-90e4-c93fedb32533",
     "createdByUsername": "admin",
     "createdByName": "Administrator",
     "createdAt": "2025-09-23T10:52:20.285Z",
-    "updatedAt": "2025-09-23T10:52:20.285Z"
+    "updatedAt": "2025-09-24T07:02:26.783Z",
+    "endedAt": "2025-09-24T07:02:26.783Z"
   },
   {
     "id": "a7193bda-b586-451b-a52e-6afdd1bf8bb2",
@@ -20,12 +21,13 @@
     "severity": "low",
     "reason": "internet_baglantisi_problemi",
     "storeCode": "106",
-    "status": "open",
+    "status": "closed",
     "createdById": "21b1a9ef-29e8-4484-90e4-c93fedb32533",
     "createdByUsername": "admin",
     "createdByName": "Administrator",
     "createdAt": "2025-09-22T11:26:50.287Z",
-    "updatedAt": "2025-09-23T10:38:58.615Z"
+    "updatedAt": "2025-09-23T12:41:39.293Z",
+    "endedAt": "2025-09-23T12:41:39.293Z"
   },
   {
     "id": "bae16800-a003-4874-8868-615ab14f9037",

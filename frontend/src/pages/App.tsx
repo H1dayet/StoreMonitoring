@@ -119,15 +119,19 @@ export const App: React.FC = () => {
   const panelBg = useColorModeValue('white', 'gray.900');
   const { colorMode, toggleColorMode } = useColorMode();
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const rangeLabel = (key: RangeKey) => (
-    key === 'all' ? 'All time' :
-    key === 'today' ? 'Today' :
-    key === 'last7' ? 'Last 7 days' :
-    key === 'last30' ? 'Last 30 days' :
-    key === 'thisMonth' ? 'This month' :
-    key === 'lastMonth' ? 'Last month' :
-    'Custom…'
-  );
+  const rangeOptions: { key: RangeKey; label: string }[] = [
+    { key: 'all', label: 'All time' },
+    { key: 'today', label: 'Today' },
+    { key: 'last7', label: 'Last 7 days' },
+    { key: 'last30', label: 'Last 30 days' },
+    { key: 'thisMonth', label: 'This month' },
+    { key: 'lastMonth', label: 'Last month' },
+    { key: 'custom', label: 'Custom…' },
+  ];
+  const rangeLabelByKey = rangeOptions.reduce((acc, o) => {
+    acc[o.key] = o.label;
+    return acc;
+  }, {} as Record<RangeKey, string>);
 
   // Dashboard metrics
   const openCount = issues.filter(i => i.status === 'open').length;
@@ -208,20 +212,21 @@ export const App: React.FC = () => {
   const avgRangeStart = timeFilterActive ? (rangeStart ?? new Date(0)) : todayStart;
   const avgRangeEnd = timeFilterActive ? (rangeEnd ?? new Date()) : todayEnd;
 
-  const rangeIssues = issues.filter(i => {
-    const created = new Date(i.createdAt);
-    const afterStart = !avgRangeStart || created >= avgRangeStart;
-    const beforeEnd = !avgRangeEnd || created <= avgRangeEnd;
-    return afterStart && beforeEnd;
-  });
-  const rangeDurations = rangeIssues.map(i => {
-    const createdMs = new Date(i.createdAt).getTime();
-    const endedMs = i.endedAt ? new Date(i.endedAt).getTime() : now;
-    return Math.max(0, endedMs - createdMs);
-  });
-  const totalDowntimeMs = rangeDurations.length
-    ? rangeDurations.reduce((a,b)=>a+b,0)
-    : 0;
+  // Calculate downtime that overlaps with the time range (not just issues created in range)
+  const totalDowntimeMs = issues.reduce((total, issue) => {
+    const createdMs = new Date(issue.createdAt).getTime();
+    const endedMs = issue.endedAt ? new Date(issue.endedAt).getTime() : now;
+    
+    // Skip if issue ended before range starts or started after range ends
+    if (avgRangeEnd && createdMs > avgRangeEnd.getTime()) return total;
+    if (avgRangeStart && endedMs < avgRangeStart.getTime()) return total;
+    
+    // Calculate overlap: intersection of [created, ended] with [rangeStart, rangeEnd]
+    const overlapStart = Math.max(createdMs, avgRangeStart?.getTime() || 0);
+    const overlapEnd = Math.min(endedMs, avgRangeEnd?.getTime() || now);
+    
+    return total + Math.max(0, overlapEnd - overlapStart);
+  }, 0);
   const totalDowntimeLabel = formatDurationMs(totalDowntimeMs);
 
   // Close modal after successful creation
@@ -259,7 +264,7 @@ export const App: React.FC = () => {
     <Box minH="100vh" bg={bg} py={6}>
       <Container maxW="6xl">
         <HStack mb={6}>
-          <Heading size="lg">Mağaza Dayanma Monitoru</Heading>
+          <Heading size="lg">Mağaza Dayanma Monitorinqi</Heading>
           <Spacer />
           {isAdmin && (
           <Button
@@ -373,16 +378,14 @@ export const App: React.FC = () => {
             <HStack gap={2} align="flex-end">
               <Menu isLazy>
                 <MenuButton as={Button} rightIcon={<ChevronDownIcon />} size="sm" variant="outline" minW="120px">
-                  {rangeLabel(rangeKey)}
+                  {rangeLabelByKey[rangeKey]}
                 </MenuButton>
                 <MenuList minW="140px">
-                  <MenuItem onClick={() => setRangeKey('all')}>All time</MenuItem>
-                  <MenuItem onClick={() => setRangeKey('today')}>Today</MenuItem>
-                  <MenuItem onClick={() => setRangeKey('last7')}>Last 7 days</MenuItem>
-                  <MenuItem onClick={() => setRangeKey('last30')}>Last 30 days</MenuItem>
-                  <MenuItem onClick={() => setRangeKey('thisMonth')}>This month</MenuItem>
-                  <MenuItem onClick={() => setRangeKey('lastMonth')}>Last month</MenuItem>
-                  <MenuItem onClick={() => setRangeKey('custom')}>Custom…</MenuItem>
+                  {rangeOptions.map(({ key, label }) => (
+                    <MenuItem key={key} onClick={() => setRangeKey(key)}>
+                      {label}
+                    </MenuItem>
+                  ))}
                 </MenuList>
               </Menu>
               {rangeKey === 'custom' && (
